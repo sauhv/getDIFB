@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <title>FB URLs → PAGEID_POSTID</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; padding: 20px; max-width: 720px; margin: auto; }
+    textarea { width: 100%; padding: 10px; font-size: 15px; min-height: 120px; box-sizing: border-box; }
+    button { margin-top: 8px; padding: 8px 12px; font-size: 15px; }
+    ul { margin-top: 16px; padding-left: 20px; }
+    li { margin: 6px 0; word-break: break-all; }
+    .error { color: #b00020; margin-top: 8px; white-space: pre-line; }
+  </style>
+</head>
+<body>
+  <h2>Chuyển nhiều URL Facebook → PAGEID_POSTID</h2>
+
+  <label for="fburls">Dán nhiều link Facebook, mỗi dòng một link:</label>
+  <textarea id="fburls" placeholder="https://www.facebook.com/100063680341285/posts/1426177266181605/
+https://www.facebook.com/100054296960041/posts/1303477658138787/
+..."></textarea>
+
+  <div>
+    <button id="convertBtn">Tạo danh sách &lt;li&gt;</button>
+  </div>
+
+  <div id="msg" class="error" aria-live="polite"></div>
+
+  <ul id="resultList" aria-live="polite"></ul>
+
+  <script>
+    const textarea = document.getElementById('fburls');
+    const btn = document.getElementById('convertBtn');
+    const msg = document.getElementById('msg');
+    const resultList = document.getElementById('resultList');
+
+    function parseFacebookPost(url) {
+      if (!url || typeof url !== 'string') return null;
+      url = url.trim();
+      if (!url) return null;
+
+      // nếu đã là dạng PAGEID_POSTID
+      const directMatch = url.match(/(\d+)_(\d+)/);
+      if (directMatch) return { page: directMatch[1], post: directMatch[2] };
+
+      try {
+        if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+        const parsed = new URL(url);
+        const path = parsed.pathname;
+
+        let m = path.match(/\/(\d+)\/posts\/(\d+)/);
+        if (m) return { page: m[1], post: m[2] };
+
+        m = path.match(/\/posts\/(\d+)/);
+        if (m) {
+          const qId = parsed.searchParams.get('id');
+          if (qId) return { page: qId, post: m[1] };
+        }
+
+        const story = parsed.searchParams.get('story_fbid') || parsed.searchParams.get('fbid');
+        const id = parsed.searchParams.get('id');
+        if (story && id) return { page: id, post: story };
+
+        const nums = url.match(/(\d{5,})/g);
+        if (nums && nums.length >= 2) return { page: nums[0], post: nums[1] };
+
+      } catch (e) {}
+
+      return null;
+    }
+
+    function handleConvert() {
+      resultList.innerHTML = '';
+      msg.textContent = '';
+
+      const lines = textarea.value.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      if (!lines.length) {
+        msg.textContent = 'Vui lòng dán ít nhất một URL.';
+        return;
+      }
+
+      const errors = [];
+
+      lines.forEach((line, idx) => {
+        const parsed = parseFacebookPost(line);
+        if (parsed) {
+          const li = document.createElement('li');
+          li.textContent = `${parsed.page}_${parsed.post}`;
+          resultList.appendChild(li);
+        } else {
+          errors.push(`• Dòng ${idx+1}: Không đọc được ID từ "${line}"`);
+        }
+      });
+
+      if (errors.length) msg.textContent = errors.join('\n');
+    }
+
+    btn.addEventListener('click', handleConvert);
+  </script>
+</body>
+</html>
