@@ -84,85 +84,70 @@ https://www.facebook.com/100054296960041/posts/1303477658138787/
 
   <script>
     const textarea = document.getElementById('fburls');
-    const btn = document.getElementById('convertBtn');
-    const msg = document.getElementById('msg');
-    const resultList = document.getElementById('resultList');
+const btn = document.getElementById('convertBtn');
+const msg = document.getElementById('msg');
+const resultList = document.getElementById('resultList');
+const img1 = document.getElementById('img1');
 
-    function parseFacebookPost(url) {
-      if (!url || typeof url !== 'string') return null;
-      url = url.trim();
-      if (!url) return null;
-
-      // nếu đã là dạng PAGEID_POSTID
-      const directMatch = url.match(/(\d+)_(\d+)/);
-      if (directMatch) return { page: directMatch[1], post: directMatch[2] };
-
-      try {
-        if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
-        const parsed = new URL(url);
-        const path = parsed.pathname;
-
-        let m = path.match(/\/(\d+)\/posts\/(\d+)/);
-        if (m) return { page: m[1], post: m[2] };
-
-        m = path.match(/\/posts\/(\d+)/);
-        if (m) {
-          const qId = parsed.searchParams.get('id');
-          if (qId) return { page: qId, post: m[1] };
-        }
-
-        const story = parsed.searchParams.get('story_fbid') || parsed.searchParams.get('fbid');
-        const id = parsed.searchParams.get('id');
-        if (story && id) return { page: id, post: story };
-
-        const nums = url.match(/(\d{5,})/g);
-        if (nums && nums.length >= 2) return { page: nums[0], post: nums[1] };
-
-      } catch (e) {}
-
-      return null;
+function parseFacebookPost(url) {
+  if (!url || typeof url !== 'string') return null;
+  url = url.trim();
+  if (!url) return null;
+  // nếu đã là dạng PAGEID_POSTID
+  const directMatch = url.match(/(\d+)_(\d+)/);
+  if (directMatch) return { page: directMatch[1], post: directMatch[2] };
+  try {
+    if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+    const parsed = new URL(url);
+    const path = parsed.pathname;
+    let m = path.match(/\/(\d+)\/posts\/(\d+)/);
+    if (m) return { page: m[1], post: m[2] };
+    m = path.match(/\/posts\/(\d+)/);
+    if (m) {
+      const qId = parsed.searchParams.get('id');
+      if (qId) return { page: qId, post: m[1] };
     }
+    const story = parsed.searchParams.get('story_fbid') || parsed.searchParams.get('fbid');
+    const id = parsed.searchParams.get('id');
+    if (story && id) return { page: id, post: story };
+    const nums = url.match(/(\d{5,})/g);
+    if (nums && nums.length >= 2) return { page: nums[0], post: nums[1] };
+  } catch (e) {}
+  return null;
+}
 
-    function handleConvert() {
-      resultList.innerHTML = '';
-      msg.textContent = '';
-
-      const lines = textarea.value.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-      if (!lines.length) {
-        msg.textContent = 'Vui lòng dán ít nhất một URL.';
-        return;
-      }
-
-      const errors = [];
-
-      lines.forEach((line, idx) => {
-        const parsed = parseFacebookPost(line);
-        if (parsed) {
-          const li = document.createElement('li');
-          li.textContent = `${parsed.page}_${parsed.post}`;
-          resultList.appendChild(li);
-        } else {
-          errors.push(`• Dòng ${idx+1}: Không đọc được ID từ "${line}"`);
-        }
-      });
-
-      if (errors.length) msg.textContent = errors.join('\n');
+function handleConvert() {
+  resultList.innerHTML = '';
+  msg.textContent = '';
+  const lines = textarea.value.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  if (!lines.length) {
+    msg.textContent = 'Vui lòng dán ít nhất một URL.';
+    return;
+  }
+  const errors = [];
+  lines.forEach((line, idx) => {
+    const parsed = parseFacebookPost(line);
+    if (parsed) {
+      const li = document.createElement('li');
+      li.textContent = `${parsed.page}_${parsed.post}`;
+      resultList.appendChild(li);
+    } else {
+      errors.push(`• Dòng ${idx+1}: Không đọc được ID từ "${line}"`);
     }
-
-    btn.addEventListener('click', handleConvert);
-
-    const btn = document.getElementById('convertBtn');
-  const img1 = document.getElementById('img1');
-
-  btn.addEventListener('click', () => {
-    // Xóa class nếu có để khởi động lại animation ngay lập tức
-    img1.classList.remove('punch-animation');
-
-    // Đoạn này giúp trình duyệt nhận biết thay đổi class để phát lại animation
-    void img1.offsetWidth;
-
-    img1.classList.add('punch-animation');
   });
+  if (errors.length) msg.textContent = errors.join('\n');
+}
+
+btn.addEventListener('click', () => {
+  // Animation đấm
+  img1.classList.remove('punch-animation');
+  void img1.offsetWidth;
+  img1.classList.add('punch-animation');
+
+  // Chạy chuyển đổi URL
+  handleConvert();
+});
+
   </script>
 </body>
 </html>
