@@ -11,6 +11,55 @@
     ul { margin-top: 16px; padding-left: 20px; }
     li { margin: 6px 0; word-break: break-all; }
     .error { color: #b00020; margin-top: 8px; white-space: pre-line; }
+     #convertBtn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 8px 15px rgba(102, 126, 234, 0.3);
+    transition: box-shadow 0.3s ease, background 0.3s ease;
+    user-select: none;
+  }
+
+  #convertBtn:hover {
+    box-shadow: 0 12px 25px rgba(118, 75, 162, 0.6);
+    background: linear-gradient(135deg, #5a67d8, #6f42c1);
+  }
+
+  #convertBtn:active {
+    background: linear-gradient(135deg, #4950c8, #5a3793);
+  }
+
+  #convertBtn img {
+    width: 88px;
+    height: auto;
+    transition: transform 0.3s ease;
+    position: relative;
+    will-change: transform;
+  }
+
+  #img1 {
+    transform-origin: center left;
+    z-index:99;
+  }
+
+  @keyframes punch {
+    0%   { transform: translateX(0) rotate(0deg); }
+    50%  { transform: translateX(40px) rotate(-20deg); }
+    70%  { transform: translateX(30px) rotate(-10deg); }
+    100% { transform: translateX(0) rotate(0deg); }
+  }
+
+  .punch-animation {
+    animation: punch 0.5s ease forwards;
+  }
   </style>
 </head>
 <body>
@@ -22,7 +71,11 @@ https://www.facebook.com/100054296960041/posts/1303477658138787/
 ..."></textarea>
 
   <div>
-    <button id="convertBtn">Đấm vào mặt THiền <img src="https://sauhv.github.io/getDIFB/thien.gif" width="10px"> </button>
+    <button id="convertBtn" aria-label="Đấm Ngay">
+      Đấm Ngay
+      <img id="img1" src="https://sauhv.github.io/getDIFB/fight.png" alt="Đấm">
+      <img id="img2" src="https://sauhv.github.io/getDIFB/thien.gif" alt="Mục tiêu">
+    </button>
   </div>
 
   <div id="msg" class="error" aria-live="polite"></div>
@@ -97,6 +150,19 @@ https://www.facebook.com/100054296960041/posts/1303477658138787/
     }
 
     btn.addEventListener('click', handleConvert);
+
+    const btn = document.getElementById('convertBtn');
+  const img1 = document.getElementById('img1');
+
+  btn.addEventListener('click', () => {
+    // Xóa class nếu có để khởi động lại animation ngay lập tức
+    img1.classList.remove('punch-animation');
+
+    // Đoạn này giúp trình duyệt nhận biết thay đổi class để phát lại animation
+    void img1.offsetWidth;
+
+    img1.classList.add('punch-animation');
+  });
   </script>
 </body>
 </html>
